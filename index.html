@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Маршрут курьера</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d0f14;--surface:#161922;--border:#252b38;
+  --accent:#f0c040;--accent2:#4facf7;--text:#e8ecf4;
+  --muted:#6b7585;--danger:#f05555;--success:#4ecb71;
+  --radius:12px;
+  --mono:'JetBrains Mono',monospace;
+  --head:'Unbounded',sans-serif;
+}
+
+body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:100vh}
+
+.app-header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:18px 24px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100;
+}
+.logo-mark{
+  width:36px;height:36px;background:var(--accent);border-radius:8px;
+  display:grid;place-items:center;font-family:var(--head);
+  font-size:14px;color:#000;font-weight:700;flex-shrink:0;
+}
+.app-title{font-family:var(--head);font-size:14px;font-weight:700;letter-spacing:.05em}
+.app-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.main{padding:24px 20px;max-width:700px;margin:0 auto}
+.section-label{
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;
+}
+
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+
+.drop-zone{
+  border:1.5px dashed var(--border);border-radius:var(--radius);
+  padding:20px 14px;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--surface);
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:rgba(240,192,64,.15);
+}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:rgba(240,192,64,.05)}
+.drop-zone.loaded{border-color:var(--success);border-style:solid}
+.drop-zone input[type=file]{
+  position:absolute;inset:0;top:0;left:0;width:100%;height:100%;
+  opacity:0;cursor:pointer;font-size:16px;
+}
+.drop-icon{font-size:24px;margin-bottom:8px;display:block}
+.drop-label{font-size:10px;color:var(--muted);line-height:1.5}
+.drop-name{font-size:10px;color:var(--success);font-weight:600;margin-top:4px;word-break:break-all;min-height:14px}
+
+.name-row{display:flex;gap:10px;margin-bottom:20px;align-items:stretch}
+.name-input-wrap{flex:1;position:relative}
+.name-input-wrap label{
+  position:absolute;top:-8px;left:10px;background:var(--bg);
+  padding:0 4px;font-size:9px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.1em;
+}
+.name-input{
+  width:100%;padding:12px 14px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:16px;
+  outline:none;transition:border-color .2s;-webkit-appearance:none;
+}
+.name-input:focus{border-color:var(--accent2)}
+.btn-search{
+  padding:12px 20px;background:var(--accent);color:#000;border:none;
+  border-radius:var(--radius);font-family:var(--head);font-size:11px;
+  font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s;
+  -webkit-appearance:none;touch-action:manipulation;
+}
+.btn-search:hover{opacity:.85}
+.btn-search:disabled{opacity:.4;cursor:not-allowed}
+
+.suggestions{
+  position:absolute;top:100%;left:0;right:0;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);
+  margin-top:4px;z-index:50;overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;
+}
+.sug-item{
+  padding:12px 14px;font-size:13px;cursor:pointer;
+  border-bottom:1px solid var(--border);transition:background .15s;
+}
+.sug-item:last-child{border-bottom:none}
+.sug-item:hover,.sug-item:active{background:rgba(240,192,64,.08);color:var(--accent)}
+
+.status-bar{
+  padding:10px 14px;border-radius:8px;font-size:11px;
+  margin-bottom:16px;display:none;line-height:1.5;
+}
+.status-bar.error{background:rgba(240,85,85,.12);border:1px solid var(--danger);color:var(--danger);display:block}
+.status-bar.info{background:rgba(79,172,247,.1);border:1px solid var(--accent2);color:var(--accent2);display:block}
+
+#results{display:none}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.courier-badge{display:flex;align-items:center;gap:10px}
+.courier-avatar{
+  width:36px;height:36px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:50%;display:grid;place-items:center;
+  font-family:var(--head);font-size:13px;color:#000;font-weight:700;flex-shrink:0;
+}
+.courier-name{font-family:var(--head);font-size:12px;font-weight:700;color:var(--text)}
+.courier-count{font-size:10px;color:var(--muted);margin-top:2px}
+.btn-reset{
+  padding:7px 14px;background:transparent;border:1px solid var(--border);
+  border-radius:8px;color:var(--muted);font-family:var(--mono);
+  font-size:10px;cursor:pointer;transition:all .2s;touch-action:manipulation;
+}
+.btn-reset:hover,.btn-reset:active{border-color:var(--danger);color:var(--danger)}
+
+.route-list{display:flex;flex-direction:column;gap:8px}
+
+.route-item{
+  display:flex;align-items:stretch;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--radius);transition:border-color .2s,opacity .2s;
+  position:relative;
+}
+.route-item.dragging{opacity:.4;border-color:var(--accent)}
+.route-item.drag-over{border-color:var(--accent2);background:rgba(79,172,247,.06)}
+.route-item.all-collected{opacity:.55;border-color:rgba(78,203,113,.3)}
+.route-item.all-collected .item-address{text-decoration:line-through;color:var(--muted)}
+
+.order-col{
+  display:flex;align-items:center;justify-content:center;
+  width:46px;flex-shrink:0;border-right:1px solid var(--border);padding:8px 4px;
+}
+.order-input{
+  width:34px;text-align:center;background:transparent;border:none;
+  color:var(--accent);font-family:var(--head);font-size:14px;font-weight:700;
+  outline:none;-moz-appearance:textfield;cursor:text;
+}
+.order-input::-webkit-inner-spin-button,.order-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.order-input:focus{color:var(--accent2)}
+
+.drag-handle{
+  display:flex;align-items:center;padding:0 10px;
+  color:var(--muted);font-size:16px;cursor:grab;flex-shrink:0;
+  touch-action:none;user-select:none;-webkit-user-select:none;
+}
+
+.item-body{flex:1;padding:10px 12px 10px 4px;min-width:0}
+.item-code{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.item-address{font-size:12px;color:var(--text);line-height:1.4;word-break:break-word}
+
+.item-cells{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.cell-tag{
+  background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);
+  color:var(--accent);font-size:10px;padding:3px 8px;border-radius:4px;
+  font-weight:600;letter-spacing:.04em;cursor:pointer;
+  transition:all .18s;user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;display:inline-block;
+}
+.cell-tag.done{
+  background:rgba(78,203,113,.15);border-color:rgba(78,203,113,.4);
+  color:var(--success);text-decoration:line-through;opacity:.75;
+}
+.cell-tag.done::after{content:' ✓';font-size:9px}
+
+.cell-progress{display:flex;align-items:center;gap:8px;margin-top:7px}
+.progress-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-bar-fill{height:100%;background:var(--success);border-radius:99px;transition:width .3s}
+.progress-label{font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap;min-width:32px;text-align:right}
+.progress-label.all-done{color:var(--success)}
+
+.summary-strip{
+  margin-top:16px;padding:14px 16px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);display:flex;gap:20px;
+}
+.sum-item{display:flex;flex-direction:column;gap:3px}
+.sum-val{font-family:var(--head);font-size:18px;font-weight:700;color:var(--accent)}
+.sum-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+@media(max-width:500px){
+  .upload-grid{grid-template-columns:1fr}
+  .name-row{flex-direction:column}
+  .btn-search{width:100%}
+  .app-title{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-mark">МК</div>
+  <div>
+    <div class="app-title">МАРШРУТ КУРЬЕРА</div>
+    <div class="app-sub">Управление порядком доставки</div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="section-label">Загрузка файлов</div>
+  <div class="upload-grid">
+    <div class="drop-zone" id="dz1">
+      <input type="file" id="inputFin"
+        accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+      <span class="drop-icon">📦</span>
+      <div class="drop-label">ФИН_МК<br>Ячейки отгрузки</div>
+      <div class="drop-name" id="fin-name"></div>
+    </div>
+    <div class="drop-zone" id="dz2">
+      <input type="file" id="inputRoutes"
+        accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+      <span class="drop-icon">🗺️</span>
+      <div class="drop-label">Маршруты<br>Адреса доставки</div>
+      <div class="drop-name" id="routes-name"></div>
+    </div>
+  </div>
+
+  <div class="section-label">Поиск курьера</div>
+  <div class="name-row" style="position:relative">
+    <div class="name-input-wrap" style="position:relative">
+      <label>Фамилия или имя</label>
+      <input class="name-input" id="nameInput" type="text"
+        placeholder="Например: Базик или Бабаян"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+    <button class="btn-search" id="searchBtn" disabled>Найти</button>
+  </div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+  <div id="results">
+    <div class="results-header">
+      <div class="courier-badge">
+        <div class="courier-avatar" id="courierAvatar">?</div>
+        <div>
+          <div class="courier-name" id="courierNameDisplay"></div>
+          <div class="courier-count" id="courierCountDisplay"></div>
+        </div>
+      </div>
+      <button class="btn-reset" id="resetBtn">✕ Сбросить</button>
+    </div>
+    <div class="route-list" id="routeList"></div>
+    <div class="summary-strip" id="summaryStrip"></div>
+  </div>
+</main>
+
+<script>
+// Load SheetJS with CDN fallback
+(function(){
+  function tryLoad(urls, i){
+    if(i >= urls.length){ showStatus('error','❌ Не удалось загрузить библиотеку xlsx. Проверьте интернет.'); return; }
+    var s = document.createElement('script');
+    s.src = urls[i];
+    s.onload = function(){ initApp(); };
+    s.onerror = function(){ tryLoad(urls, i+1); };
+    document.head.appendChild(s);
+  }
+  tryLoad([
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ], 0);
+})();
+
+var finData = null;
+var routesData = null;
+var currentItems = [];
+var currentCourierName = '';
+var dragSrc = null;
+var touchDragIdx = null;
+var touchClone = null;
+
+function initApp(){
+  document.getElementById('inputFin').addEventListener('change', function(e){ loadFile(e.target.files[0], 'fin'); });
+  document.getElementById('inputRoutes').addEventListener('change', function(e){ loadFile(e.target.files[0], 'routes'); });
+
+  // Drag-drop onto upload zones
+  ['dz1','dz2'].forEach(function(id){
+    var el = document.getElementById(id);
+    var type = id === 'dz1' ? 'fin' : 'routes';
+    el.addEventListener('dragover', function(e){ e.preventDefault(); el.classList.add('over'); });
+    el.addEventListener('dragleave', function(){ el.classList.remove('over'); });
+    el.addEventListener('drop', function(e){
+      e.preventDefault(); el.classList.remove('over');
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) loadFile(f, type);
+    });
+  });
+
+  document.getElementById('nameInput').addEventListener('input', onNameInput);
+  document.getElementById('nameInput').addEventListener('keydown', onNameKey);
+  document.getElementById('searchBtn').addEventListener('click', search);
+  document.getElementById('resetBtn').addEventListener('click', resetResults);
+
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.name-input-wrap')) hideSuggestions();
+  });
+}
+
+// FILE LOADING
+function loadFile(file, type){
+  if(!file) return;
+  var nameEl  = document.getElementById(type === 'fin' ? 'fin-name'    : 'routes-name');
+  var dzEl    = document.getElementById(type === 'fin' ? 'dz1'         : 'dz2');
+  var inputEl = document.getElementById(type === 'fin' ? 'inputFin'    : 'inputRoutes');
+
+  dzEl.classList.remove('loaded');
+  nameEl.textContent = '⏳ Загрузка…';
+  showStatus('','');
+
+  var name = (file.name || '').toLowerCase();
+  if(name.indexOf('.xlsx') === -1 && name.indexOf('.xls') === -1){
+    nameEl.textContent = '';
+    showStatus('error', '❌ Неверный формат: "' + file.name + '". Нужен .xlsx или .xls');
+    inputEl.value = ''; return;
+  }
+  if(file.size > 20 * 1024 * 1024){
+    nameEl.textContent = '';
+    showStatus('error', '❌ Файл слишком большой (макс. 20 МБ)');
+    inputEl.value = ''; return;
+  }
+
+  var reader = new FileReader();
+
+  reader.onload = function(ev){
+    try{
+      if(typeof XLSX === 'undefined') throw new Error('Библиотека xlsx ещё не загружена. Попробуйте снова.');
+      var data = new Uint8Array(ev.target.result);
+      var wb   = XLSX.read(data, { type: 'array' });
+      if(!wb || !wb.SheetNames || !wb.SheetNames.length) throw new Error('Файл не содержит листов');
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var rows  = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      if(!rows || !rows.length) throw new Error('Первый лист пуст');
+
+      if(type === 'fin') finData = rows; else routesData = rows;
+      nameEl.textContent = '✓ ' + file.name;
+      dzEl.classList.add('loaded');
+      updateSearchBtn();
+      showStatus('','');
+    } catch(ex){
+      nameEl.textContent = '❌ Ошибка';
+      dzEl.classList.remove('loaded');
+      inputEl.value = '';
+      showStatus('error', '❌ ' + (ex.message || ex));
+    }
+  };
+
+  reader.onerror = function(){
+    nameEl.textContent = '❌ Ошибка';
+    inputEl.value = '';
+    showStatus('error', '❌ Не удалось прочитать файл. Попробуйте снова.');
+  };
+
+  // readAsArrayBuffer — единственный надёжный метод на всех платформах
+  reader.readAsArrayBuffer(file);
+}
+
+function updateSearchBtn(){
+  document.getElementById('searchBtn').disabled = !(finData && routesData);
+}
+
+// AUTOCOMPLETE
+function getAllNames(){
+  if(!routesData) return [];
+  var seen = {}, result = [];
+  for(var i=0; i<routesData.length; i++){
+    var r = routesData[i];
+    var n = String(r['Имя курьера'] || r[Object.keys(r)[0]] || '').trim();
+    if(n && !seen[n]){ seen[n]=true; result.push(n); }
+  }
+  return result;
+}
+
+function onNameInput(){
+  var val = document.getElementById('nameInput').value.trim().toLowerCase();
+  if(!val || !routesData){ hideSuggestions(); return; }
+  var matches = getAllNames().filter(function(n){ return n.toLowerCase().indexOf(val) !== -1; });
+  if(!matches.length){ hideSuggestions(); return; }
+
+  var sg = document.getElementById('suggestions');
+  sg.innerHTML = '';
+  matches.slice(0,8).forEach(function(m){
+    var el = document.createElement('div');
+    el.className = 'sug-item';
+    el.innerHTML = highlight(m, val);
+    el.addEventListener('mousedown', function(e){ e.preventDefault(); pickName(m); });
+    el.addEventListener('touchend',  function(e){ e.preventDefault(); pickName(m); });
+    sg.appendChild(el);
+  });
+  sg.style.display = 'block';
+}
+
+function highlight(str, q){
+  var idx = str.toLowerCase().indexOf(q);
+  if(idx < 0) return esc(str);
+  return esc(str.slice(0,idx)) +
+    '<span style="color:var(--accent)">' + esc(str.slice(idx, idx+q.length)) + '</span>' +
+    esc(str.slice(idx+q.length));
+}
+
+function pickName(name){
+  document.getElementById('nameInput').value = name;
+  hideSuggestions();
+}
+function hideSuggestions(){ document.getElementById('suggestions').style.display = 'none'; }
+
+function onNameKey(e){
+  if(e.key === 'Enter'){ hideSuggestions(); search(); }
+  if(e.key === 'Escape') hideSuggestions();
+}
+
+// SEARCH
+function search(){
+  hideSuggestions();
+  var query = document.getElementById('nameInput').value.trim().toLowerCase();
+  if(!query){ showStatus('error','⚠️ Введите фамилию курьера'); return; }
+  if(!finData || !routesData){ showStatus('error','⚠️ Загрузите оба файла'); return; }
+
+  var courierRoutes = routesData.filter(function(r){
+    return String(r['Имя курьера'] || r[Object.keys(r)[0]] || '').toLowerCase().indexOf(query) !== -1;
+  });
+  if(!courierRoutes.length){ showStatus('error','❌ Курьер не найден. Проверьте написание.'); return; }
+
+  var fullName = String(courierRoutes[0]['Имя курьера'] || courierRoutes[0][Object.keys(courierRoutes[0])[0]]).trim();
+
+  var codeMap = {};
+  courierRoutes.forEach(function(r){
+    var code = String(r['Название ЦМН'] || r[Object.keys(r)[2]] || '').trim();
+    var addr = String(r['Адрес ЦМН']    || r[Object.keys(r)[1]] || '').trim();
+    if(code) codeMap[code] = addr;
+  });
+
+  var courierFin = finData.filter(function(r){
+    return String(r['Перевозчик'] || r[Object.keys(r)[0]] || '').toLowerCase().indexOf(query) !== -1;
+  });
+
+  var itemMap = {};
+  courierFin.forEach(function(r){
+    var recipients = String(r['Получатели']      || r[Object.keys(r)[4]] || '');
+    var cells      = String(r['Ячейки отгрузки'] || r[Object.keys(r)[3]] || '');
+    var codes    = recipients.split(/[\n,]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var cellList = cells.split(/[\n,]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    codes.forEach(function(code){
+      if(!itemMap[code]) itemMap[code] = [];
+      cellList.forEach(function(c){ if(itemMap[code].indexOf(c) === -1) itemMap[code].push(c); });
+    });
+  });
+
+  var seen = {}, allCodes = [];
+  Object.keys(codeMap).concat(Object.keys(itemMap)).forEach(function(c){
+    if(!seen[c]){ seen[c]=true; allCodes.push(c); }
+  });
+
+  var items = allCodes.map(function(code){
+    return { code:code, address:codeMap[code]||'—', cells:itemMap[code]||[], collected:new Set() };
+  });
+
+  if(!items.length){ showStatus('error','❌ Данные найдены, но адресов нет.'); return; }
+
+  showStatus('','');
+  currentItems = items;
+  currentCourierName = fullName;
+  renderResults();
+}
+
+// RENDER
+function renderResults(){
+  var name = currentCourierName;
+  var initials = name.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
+  document.getElementById('courierAvatar').textContent = initials;
+  document.getElementById('courierNameDisplay').textContent = name;
+
+  var list = document.getElementById('routeList');
+  list.innerHTML = '';
+
+  currentItems.forEach(function(item, idx){
+    var doneCount  = item.collected.size;
+    var totalCount = item.cells.length;
+    var pct        = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
+    var allDone    = totalCount > 0 && doneCount === totalCount;
+
+    var el = document.createElement('div');
+    el.className = 'route-item' + (allDone ? ' all-collected' : '');
+    el.dataset.idx = idx;
+    el.draggable = true;
+
+    // order input
+    var orderCol = document.createElement('div');
+    orderCol.className = 'order-col';
+    var orderInput = document.createElement('input');
+    orderInput.className = 'order-input';
+    orderInput.type = 'number';
+    orderInput.min = 1;
+    orderInput.max = currentItems.length;
+    orderInput.value = idx + 1;
+    orderInput.addEventListener('change', function(){ reorderByInput(idx, parseInt(orderInput.value)-1); });
+    orderInput.addEventListener('click', function(){ orderInput.select(); });
+    orderCol.appendChild(orderInput);
+
+    // drag handle
+    var handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.textContent = '⠿';
+    handle.addEventListener('touchstart', onTouchStart, { passive: false });
+    handle.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    handle.addEventListener('touchend',   onTouchEnd,   { passive: false });
+
+    // body
+    var body = document.createElement('div');
+    body.className = 'item-body';
+
+    var codeDiv = document.createElement('div');
+    codeDiv.className = 'item-code';
+    codeDiv.textContent = item.code;
+
+    var addrDiv = document.createElement('div');
+    addrDiv.className = 'item-address';
+    addrDiv.textContent = item.address;
+
+    body.appendChild(codeDiv);
+    body.appendChild(addrDiv);
+
+    if(item.cells.length){
+      var cellsDiv = document.createElement('div');
+      cellsDiv.className = 'item-cells';
+      item.cells.forEach(function(c){
+        var tag = document.createElement('span');
+        tag.className = 'cell-tag' + (item.collected.has(c) ? ' done' : '');
+        tag.textContent = c;
+        tag.addEventListener('click',    function(e){ e.stopPropagation(); toggleCell(idx, c); });
+        tag.addEventListener('touchend', function(e){ e.stopPropagation(); e.preventDefault(); toggleCell(idx, c); });
+        cellsDiv.appendChild(tag);
+      });
+
+      var progressDiv = document.createElement('div');
+      progressDiv.className = 'cell-progress';
+      progressDiv.innerHTML =
+        '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div>' +
+        '<div class="progress-label'+(allDone?' all-done':'')+'">'+(allDone?'✓ все':doneCount+'/'+totalCount)+'</div>';
+
+      body.appendChild(cellsDiv);
+      body.appendChild(progressDiv);
+    }
+
+    el.appendChild(orderCol);
+    el.appendChild(handle);
+    el.appendChild(body);
+
+    // desktop drag
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragover',  onDragOver);
+    el.addEventListener('drop',      onDrop);
+    el.addEventListener('dragend',   onDragEnd);
+
+    list.appendChild(el);
+  });
+
+  updateSummary();
+  document.getElementById('results').style.display = 'block';
+}
+
+function updateSummary(){
+  var totalCells = 0, doneCells = 0, addrsLeft = 0;
+  currentItems.forEach(function(it){
+    totalCells += it.cells.length;
+    doneCells  += it.collected.size;
+    var itemDone = it.cells.length > 0 && it.cells.every(function(c){ return it.collected.has(c); });
+    if(!itemDone) addrsLeft++;
+  });
+  var remaining = totalCells - doneCells;
+
+  document.getElementById('courierCountDisplay').textContent = addrsLeft === currentItems.length
+    ? currentItems.length + ' адресов в маршруте'
+    : addrsLeft + ' из ' + currentItems.length + ' адресов осталось';
+
+  var s = document.getElementById('summaryStrip');
+  s.innerHTML =
+    '<div class="sum-item"><div class="sum-val" style="color:'+(addrsLeft===0?'var(--success)':'var(--accent)')+'">'+addrsLeft+'</div><div class="sum-label">Адресов осталось</div></div>' +
+    '<div class="sum-item"><div class="sum-val" style="color:'+(remaining===0&&totalCells>0?'var(--success)':'var(--accent2)')+'">'+remaining+'</div><div class="sum-label">МК осталось</div></div>' +
+    '<div class="sum-item"><div class="sum-val" style="color:var(--muted)">'+doneCells+'</div><div class="sum-label">МК собрано</div></div>';
+}
+
+function toggleCell(itemIdx, cellCode){
+  var item = currentItems[itemIdx];
+  if(item.collected.has(cellCode)) item.collected.delete(cellCode);
+  else item.collected.add(cellCode);
+  renderResults();
+}
+
+function resetResults(){
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('nameInput').value = '';
+  currentItems = [];
+  currentCourierName = '';
+}
+
+function reorderByInput(fromIdx, toIdx){
+  toIdx = Math.max(0, Math.min(currentItems.length - 1, toIdx));
+  if(toIdx === fromIdx) return;
+  var moved = currentItems.splice(fromIdx, 1)[0];
+  currentItems.splice(toIdx, 0, moved);
+  renderResults();
+}
+
+// DESKTOP DRAG
+function onDragStart(e){
+  dragSrc = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.dataset.idx);
+}
+function onDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.route-item').forEach(function(el){ el.classList.remove('drag-over'); });
+  if(this !== dragSrc) this.classList.add('drag-over');
+}
+function onDrop(e){
+  e.preventDefault();
+  if(dragSrc && dragSrc !== this){
+    var from = parseInt(dragSrc.dataset.idx);
+    var to   = parseInt(this.dataset.idx);
+    var moved = currentItems.splice(from, 1)[0];
+    currentItems.splice(to, 0, moved);
+    renderResults();
+  }
+}
+function onDragEnd(){
+  document.querySelectorAll('.route-item').forEach(function(el){ el.classList.remove('dragging','drag-over'); });
+  dragSrc = null;
+}
+
+// TOUCH DRAG
+function onTouchStart(e){
+  e.preventDefault();
+  var item = this.closest('.route-item');
+  touchDragIdx = parseInt(item.dataset.idx);
+  var rect = item.getBoundingClientRect();
+  touchClone = item.cloneNode(true);
+  var st = touchClone.style;
+  st.position = 'fixed';
+  st.zIndex = '9999';
+  st.pointerEvents = 'none';
+  st.opacity = '0.85';
+  st.left = rect.left + 'px';
+  st.top  = rect.top  + 'px';
+  st.width = rect.width + 'px';
+  st.boxShadow = '0 8px 32px rgba(0,0,0,.6)';
+  st.borderColor = 'var(--accent)';
+  st.transition = 'none';
+  st.margin = '0';
+  document.body.appendChild(touchClone);
+  item.classList.add('dragging');
+}
+function onTouchMove(e){
+  e.preventDefault();
+  if(!touchClone) return;
+  var t = e.touches[0];
+  var h = touchClone.offsetHeight;
+  touchClone.style.top  = (t.clientY - h/2) + 'px';
+  touchClone.style.left = touchClone.style.left; // keep x fixed
+
+  touchClone.style.display = 'none';
+  var el = document.elementFromPoint(t.clientX, t.clientY);
+  touchClone.style.display = '';
+
+  document.querySelectorAll('.route-item').forEach(function(r){ r.classList.remove('drag-over'); });
+  var target = el && el.closest('.route-item');
+  if(target && parseInt(target.dataset.idx) !== touchDragIdx) target.classList.add('drag-over');
+}
+function onTouchEnd(e){
+  e.preventDefault();
+  if(touchClone){ touchClone.remove(); touchClone = null; }
+  document.querySelectorAll('.route-item').forEach(function(r){ r.classList.remove('dragging','drag-over'); });
+  if(touchDragIdx === null) return;
+  var t = e.changedTouches[0];
+  var el = document.elementFromPoint(t.clientX, t.clientY);
+  var target = el && el.closest('.route-item');
+  if(target){
+    var toIdx = parseInt(target.dataset.idx);
+    if(toIdx !== touchDragIdx){
+      var moved = currentItems.splice(touchDragIdx, 1)[0];
+      currentItems.splice(toIdx, 0, moved);
+      renderResults();
+    }
+  }
+  touchDragIdx = null;
+}
+
+function showStatus(type, msg){
+  var bar = document.getElementById('statusBar');
+  bar.className = 'status-bar' + (type ? ' '+type : '');
+  bar.textContent = msg;
+  bar.style.display = msg ? 'block' : 'none';
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
