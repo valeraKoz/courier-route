@@ -39,6 +39,7 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
   text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;
 }
 
+/* UPLOAD — теперь поддерживает 2 слота для МК-файлов */
 .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 
 .drop-zone{
@@ -51,13 +52,21 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 .drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:rgba(240,192,64,.05)}
 .drop-zone.loaded{border-color:var(--success);border-style:solid}
 .drop-zone input[type=file]{
-  position:absolute;inset:0;top:0;left:0;width:100%;height:100%;
+  position:absolute;top:0;left:0;width:100%;height:100%;
   opacity:0;cursor:pointer;font-size:16px;
 }
 .drop-icon{font-size:24px;margin-bottom:8px;display:block}
 .drop-label{font-size:10px;color:var(--muted);line-height:1.5}
 .drop-name{font-size:10px;color:var(--success);font-weight:600;margin-top:4px;word-break:break-all;min-height:14px}
+/* тип файла бейдж */
+.drop-type{
+  display:inline-block;margin-top:5px;padding:2px 7px;border-radius:4px;
+  font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+}
+.drop-type.fin{background:rgba(240,192,64,.15);color:var(--accent);border:1px solid rgba(240,192,64,.3)}
+.drop-type.pre{background:rgba(79,172,247,.15);color:var(--accent2);border:1px solid rgba(79,172,247,.3)}
 
+/* NAME INPUT */
 .name-row{display:flex;gap:10px;margin-bottom:20px;align-items:stretch}
 .name-input-wrap{flex:1;position:relative}
 .name-input-wrap label{
@@ -84,8 +93,8 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 .suggestions{
   position:absolute;top:100%;left:0;right:0;background:var(--surface);
   border:1px solid var(--border);border-radius:var(--radius);
-  margin-top:4px;z-index:50;overflow:hidden;
-  box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;
+  margin-top:4px;z-index:200;overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;
 }
 .sug-item{
   padding:12px 14px;font-size:13px;cursor:pointer;
@@ -120,6 +129,7 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 
 .route-list{display:flex;flex-direction:column;gap:8px}
 
+/* ROUTE ITEM — handle справа */
 .route-item{
   display:flex;align-items:stretch;
   background:var(--surface);border:1.5px solid var(--border);
@@ -131,6 +141,7 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 .route-item.all-collected{opacity:.55;border-color:rgba(78,203,113,.3)}
 .route-item.all-collected .item-address{text-decoration:line-through;color:var(--muted)}
 
+/* порядковый номер — слева */
 .order-col{
   display:flex;align-items:center;justify-content:center;
   width:46px;flex-shrink:0;border-right:1px solid var(--border);padding:8px 4px;
@@ -143,13 +154,8 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 .order-input::-webkit-inner-spin-button,.order-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .order-input:focus{color:var(--accent2)}
 
-.drag-handle{
-  display:flex;align-items:center;padding:0 10px;
-  color:var(--muted);font-size:16px;cursor:grab;flex-shrink:0;
-  touch-action:none;user-select:none;-webkit-user-select:none;
-}
-
-.item-body{flex:1;padding:10px 12px 10px 4px;min-width:0}
+/* контент */
+.item-body{flex:1;padding:10px 8px 10px 12px;min-width:0}
 .item-code{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .item-address{font-size:12px;color:var(--text);line-height:1.4;word-break:break-word}
 
@@ -173,6 +179,16 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 .progress-label{font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap;min-width:32px;text-align:right}
 .progress-label.all-done{color:var(--success)}
 
+/* drag handle — СПРАВА */
+.drag-handle{
+  display:flex;align-items:center;justify-content:center;
+  padding:0 12px;border-left:1px solid var(--border);
+  color:var(--muted);font-size:18px;cursor:grab;flex-shrink:0;
+  touch-action:none;user-select:none;-webkit-user-select:none;
+  border-radius:0 var(--radius) var(--radius) 0;
+}
+.drag-handle:active{cursor:grabbing;color:var(--accent)}
+
 .summary-strip{
   margin-top:16px;padding:14px 16px;background:var(--surface);
   border:1px solid var(--border);border-radius:var(--radius);display:flex;gap:20px;
@@ -187,6 +203,17 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
   .btn-search{width:100%}
   .app-title{font-size:12px}
 }
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--surface);border:1px solid var(--success);color:var(--success);
+  padding:10px 18px;border-radius:99px;font-size:11px;font-weight:600;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:9999;
+  opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -202,13 +229,16 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
 <main class="main">
   <div class="section-label">Загрузка файлов</div>
   <div class="upload-grid">
+    <!-- Слот 1: ФИН_МК или Предварительные -->
     <div class="drop-zone" id="dz1">
-      <input type="file" id="inputFin"
+      <input type="file" id="inputMk1"
         accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
       <span class="drop-icon">📦</span>
-      <div class="drop-label">ФИН_МК<br>Ячейки отгрузки</div>
-      <div class="drop-name" id="fin-name"></div>
+      <div class="drop-label">ФИН_МК или<br>Предварительные МК</div>
+      <div class="drop-name" id="mk1-name"></div>
+      <div id="mk1-type"></div>
     </div>
+    <!-- Слот 2: Маршруты (адреса) -->
     <div class="drop-zone" id="dz2">
       <input type="file" id="inputRoutes"
         accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
@@ -219,8 +249,8 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
   </div>
 
   <div class="section-label">Поиск курьера</div>
-  <div class="name-row" style="position:relative">
-    <div class="name-input-wrap" style="position:relative">
+  <div class="name-row">
+    <div class="name-input-wrap" id="nameInputWrap">
       <label>Фамилия или имя</label>
       <input class="name-input" id="nameInput" type="text"
         placeholder="Например: Базик или Бабаян"
@@ -241,15 +271,19 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
           <div class="courier-count" id="courierCountDisplay"></div>
         </div>
       </div>
-      <button class="btn-reset" id="resetBtn">✕ Сбросить</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-reset" id="clearOrderBtn" style="display:none" title="Сбросить сохранённый порядок">↺ Порядок</button>
+        <button class="btn-reset" id="resetBtn">✕ Сбросить</button>
+      </div>
     </div>
     <div class="route-list" id="routeList"></div>
     <div class="summary-strip" id="summaryStrip"></div>
   </div>
 </main>
 
+<div class="toast" id="toast"></div>
+
 <script>
-// Load SheetJS with CDN fallback
 (function(){
   function tryLoad(urls, i){
     if(i >= urls.length){ showStatus('error','❌ Не удалось загрузить библиотеку xlsx. Проверьте интернет.'); return; }
@@ -265,7 +299,9 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:1
   ], 0);
 })();
 
-var finData = null;
+// ─── STATE ───────────────────────────────────────────────────────────────────
+var mkData     = null;  // ФИН_МК или Предварительные
+var mkFileType = null;  // 'fin' | 'pre'
 var routesData = null;
 var currentItems = [];
 var currentCourierName = '';
@@ -273,58 +309,103 @@ var dragSrc = null;
 var touchDragIdx = null;
 var touchClone = null;
 
+// ─── ОПРЕДЕЛЕНИЕ ТИПА МК-ФАЙЛА ───────────────────────────────────────────────
+// fin:  колонки «Перевозчик», «Ячейки отгрузки», «Получатели»
+// pre:  колонки «ФИО Курьера», «Ячейки», «Получатели»
+// Также проверяем наличие значений типа MK-XX-XX в соответствующей колонке
+var MK_PATTERN = /^MK-\d+-\d+/i;
+
+function detectMkFileType(rows){
+  if(!rows || !rows.length) return null;
+  var keys = Object.keys(rows[0]);
+
+  // Проверяем по названию колонок
+  var hasFin = keys.some(function(k){ return /перевозчик/i.test(k); });
+  var hasPre = keys.some(function(k){ return /фио.?курьер/i.test(k); });
+  if(hasFin) return 'fin';
+  if(hasPre) return 'pre';
+
+  // Фолбэк: ищем колонку где есть значения MK-XX-XX
+  for(var i=0; i<keys.length; i++){
+    for(var r=0; r<Math.min(rows.length,10); r++){
+      var val = String(rows[r][keys[i]] || '');
+      if(MK_PATTERN.test(val)) return 'pre'; // если нашли МК в неизвестной колонке — считаем pre
+    }
+  }
+  return null;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
 function initApp(){
-  document.getElementById('inputFin').addEventListener('change', function(e){ loadFile(e.target.files[0], 'fin'); });
+  document.getElementById('inputMk1').addEventListener('change', function(e){ loadFile(e.target.files[0], 'mk'); });
   document.getElementById('inputRoutes').addEventListener('change', function(e){ loadFile(e.target.files[0], 'routes'); });
 
-  // Drag-drop onto upload zones
   ['dz1','dz2'].forEach(function(id){
     var el = document.getElementById(id);
-    var type = id === 'dz1' ? 'fin' : 'routes';
-    el.addEventListener('dragover', function(e){ e.preventDefault(); el.classList.add('over'); });
+    var slot = id === 'dz1' ? 'mk' : 'routes';
+    el.addEventListener('dragover',  function(e){ e.preventDefault(); el.classList.add('over'); });
     el.addEventListener('dragleave', function(){ el.classList.remove('over'); });
     el.addEventListener('drop', function(e){
       e.preventDefault(); el.classList.remove('over');
       var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if(f) loadFile(f, type);
+      if(f) loadFile(f, slot);
     });
   });
 
   document.getElementById('nameInput').addEventListener('input', onNameInput);
   document.getElementById('nameInput').addEventListener('keydown', onNameKey);
+
+  // Скролл к инпуту при фокусе (для мобильных — клавиатура сдвигает страницу)
+  document.getElementById('nameInput').addEventListener('focus', function(){
+    var el = document.getElementById('nameInputWrap');
+    setTimeout(function(){
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }, 350); // 350ms — ждём пока клавиатура поднимется
+  });
+
   document.getElementById('searchBtn').addEventListener('click', search);
   document.getElementById('resetBtn').addEventListener('click', resetResults);
+  document.getElementById('clearOrderBtn').addEventListener('click', function(){
+    clearStoredRoute();
+    // Пересобираем маршрут без сохранения
+    search();
+    showToast('🗑 Сохранённый порядок сброшен');
+    document.getElementById('clearOrderBtn').style.display = 'none';
+  });
 
   document.addEventListener('click', function(e){
     if(!e.target.closest('.name-input-wrap')) hideSuggestions();
   });
 }
 
-// FILE LOADING
-function loadFile(file, type){
+// ─── FILE LOADING ─────────────────────────────────────────────────────────────
+function loadFile(file, slot){
   if(!file) return;
-  var nameEl  = document.getElementById(type === 'fin' ? 'fin-name'    : 'routes-name');
-  var dzEl    = document.getElementById(type === 'fin' ? 'dz1'         : 'dz2');
-  var inputEl = document.getElementById(type === 'fin' ? 'inputFin'    : 'inputRoutes');
+  var isMk     = slot === 'mk';
+  var nameEl   = document.getElementById(isMk ? 'mk1-name'    : 'routes-name');
+  var dzEl     = document.getElementById(isMk ? 'dz1'         : 'dz2');
+  var inputEl  = document.getElementById(isMk ? 'inputMk1'    : 'inputRoutes');
+  var typeEl   = isMk ? document.getElementById('mk1-type') : null;
 
   dzEl.classList.remove('loaded');
   nameEl.textContent = '⏳ Загрузка…';
+  if(typeEl) typeEl.innerHTML = '';
   showStatus('','');
 
-  var name = (file.name || '').toLowerCase();
-  if(name.indexOf('.xlsx') === -1 && name.indexOf('.xls') === -1){
+  var fname = (file.name || '').toLowerCase();
+  if(fname.indexOf('.xlsx') === -1 && fname.indexOf('.xls') === -1){
     nameEl.textContent = '';
     showStatus('error', '❌ Неверный формат: "' + file.name + '". Нужен .xlsx или .xls');
     inputEl.value = ''; return;
   }
-  if(file.size > 20 * 1024 * 1024){
+  if(file.size > 20*1024*1024){
     nameEl.textContent = '';
     showStatus('error', '❌ Файл слишком большой (макс. 20 МБ)');
     inputEl.value = ''; return;
   }
 
   var reader = new FileReader();
-
   reader.onload = function(ev){
     try{
       if(typeof XLSX === 'undefined') throw new Error('Библиотека xlsx ещё не загружена. Попробуйте снова.');
@@ -335,34 +416,45 @@ function loadFile(file, type){
       var rows  = XLSX.utils.sheet_to_json(sheet, { defval: '' });
       if(!rows || !rows.length) throw new Error('Первый лист пуст');
 
-      if(type === 'fin') finData = rows; else routesData = rows;
+      if(isMk){
+        var detected = detectMkFileType(rows);
+        if(!detected){
+          throw new Error('Не удалось определить тип файла МК. Ожидается ФИН_МК или Предварительные МК.');
+        }
+        mkData     = rows;
+        mkFileType = detected;
+        var label  = detected === 'fin' ? 'ФИН МК' : 'Предварительные МК';
+        var cls    = detected === 'fin' ? 'fin'     : 'pre';
+        typeEl.innerHTML = '<span class="drop-type ' + cls + '">' + label + '</span>';
+      } else {
+        routesData = rows;
+      }
+
       nameEl.textContent = '✓ ' + file.name;
       dzEl.classList.add('loaded');
       updateSearchBtn();
       showStatus('','');
     } catch(ex){
       nameEl.textContent = '❌ Ошибка';
+      if(typeEl) typeEl.innerHTML = '';
       dzEl.classList.remove('loaded');
       inputEl.value = '';
       showStatus('error', '❌ ' + (ex.message || ex));
     }
   };
-
   reader.onerror = function(){
     nameEl.textContent = '❌ Ошибка';
     inputEl.value = '';
     showStatus('error', '❌ Не удалось прочитать файл. Попробуйте снова.');
   };
-
-  // readAsArrayBuffer — единственный надёжный метод на всех платформах
   reader.readAsArrayBuffer(file);
 }
 
 function updateSearchBtn(){
-  document.getElementById('searchBtn').disabled = !(finData && routesData);
+  document.getElementById('searchBtn').disabled = !(mkData && routesData);
 }
 
-// AUTOCOMPLETE
+// ─── AUTOCOMPLETE ─────────────────────────────────────────────────────────────
 function getAllNames(){
   if(!routesData) return [];
   var seen = {}, result = [];
@@ -379,7 +471,6 @@ function onNameInput(){
   if(!val || !routesData){ hideSuggestions(); return; }
   var matches = getAllNames().filter(function(n){ return n.toLowerCase().indexOf(val) !== -1; });
   if(!matches.length){ hideSuggestions(); return; }
-
   var sg = document.getElementById('suggestions');
   sg.innerHTML = '';
   matches.slice(0,8).forEach(function(m){
@@ -397,28 +488,24 @@ function highlight(str, q){
   var idx = str.toLowerCase().indexOf(q);
   if(idx < 0) return esc(str);
   return esc(str.slice(0,idx)) +
-    '<span style="color:var(--accent)">' + esc(str.slice(idx, idx+q.length)) + '</span>' +
+    '<span style="color:var(--accent)">' + esc(str.slice(idx,idx+q.length)) + '</span>' +
     esc(str.slice(idx+q.length));
 }
-
-function pickName(name){
-  document.getElementById('nameInput').value = name;
-  hideSuggestions();
-}
+function pickName(name){ document.getElementById('nameInput').value = name; hideSuggestions(); }
 function hideSuggestions(){ document.getElementById('suggestions').style.display = 'none'; }
-
 function onNameKey(e){
   if(e.key === 'Enter'){ hideSuggestions(); search(); }
   if(e.key === 'Escape') hideSuggestions();
 }
 
-// SEARCH
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
 function search(){
   hideSuggestions();
   var query = document.getElementById('nameInput').value.trim().toLowerCase();
   if(!query){ showStatus('error','⚠️ Введите фамилию курьера'); return; }
-  if(!finData || !routesData){ showStatus('error','⚠️ Загрузите оба файла'); return; }
+  if(!mkData || !routesData){ showStatus('error','⚠️ Загрузите оба файла'); return; }
 
+  // Адреса из файла Маршруты
   var courierRoutes = routesData.filter(function(r){
     return String(r['Имя курьера'] || r[Object.keys(r)[0]] || '').toLowerCase().indexOf(query) !== -1;
   });
@@ -433,21 +520,38 @@ function search(){
     if(code) codeMap[code] = addr;
   });
 
-  var courierFin = finData.filter(function(r){
-    return String(r['Перевозчик'] || r[Object.keys(r)[0]] || '').toLowerCase().indexOf(query) !== -1;
-  });
-
+  // МК из файла МК (определяем поля по типу)
   var itemMap = {};
-  courierFin.forEach(function(r){
-    var recipients = String(r['Получатели']      || r[Object.keys(r)[4]] || '');
-    var cells      = String(r['Ячейки отгрузки'] || r[Object.keys(r)[3]] || '');
-    var codes    = recipients.split(/[\n,]/).map(function(s){ return s.trim(); }).filter(Boolean);
-    var cellList = cells.split(/[\n,]/).map(function(s){ return s.trim(); }).filter(Boolean);
-    codes.forEach(function(code){
-      if(!itemMap[code]) itemMap[code] = [];
-      cellList.forEach(function(c){ if(itemMap[code].indexOf(c) === -1) itemMap[code].push(c); });
+
+  if(mkFileType === 'fin'){
+    // ФИН МК: Перевозчик | Ячейки отгрузки | Получатели
+    var rows = mkData.filter(function(r){
+      return String(r['Перевозчик'] || r[Object.keys(r)[0]] || '').toLowerCase().indexOf(query) !== -1;
     });
-  });
+    rows.forEach(function(r){
+      var recipients = String(r['Получатели']      || r[Object.keys(r)[4]] || '');
+      var cells      = String(r['Ячейки отгрузки'] || r[Object.keys(r)[3]] || '');
+      parseCodes(recipients).forEach(function(code){
+        if(!itemMap[code]) itemMap[code] = [];
+        parseCodes(cells).forEach(function(c){ if(itemMap[code].indexOf(c)===-1) itemMap[code].push(c); });
+      });
+    });
+
+  } else {
+    // Предварительные МК: ФИО Курьера | Ячейки | Получатели
+    var rows = mkData.filter(function(r){
+      var name = String(r['ФИО Курьера'] || r[Object.keys(r)[0]] || '').toLowerCase();
+      return name.indexOf(query) !== -1;
+    });
+    rows.forEach(function(r){
+      var recipients = String(r['Получатели'] || r[Object.keys(r)[2]] || '');
+      var cells      = String(r['Ячейки']     || r[Object.keys(r)[1]] || '');
+      parseCodes(recipients).forEach(function(code){
+        if(!itemMap[code]) itemMap[code] = [];
+        parseCodes(cells).forEach(function(c){ if(itemMap[code].indexOf(c)===-1) itemMap[code].push(c); });
+      });
+    });
+  }
 
   var seen = {}, allCodes = [];
   Object.keys(codeMap).concat(Object.keys(itemMap)).forEach(function(c){
@@ -460,13 +564,34 @@ function search(){
 
   if(!items.length){ showStatus('error','❌ Данные найдены, но адресов нет.'); return; }
 
+  items = applyStoredState(items);
+
+  // Проверяем — был ли порядок восстановлен из localStorage
+  var wasRestored = (function(){
+    try{
+      var key = routeStorageKey(items);
+      return !!localStorage.getItem(key);
+    } catch(e){ return false; }
+  })();
+
   showStatus('','');
   currentItems = items;
   currentCourierName = fullName;
   renderResults();
+
+  if(wasRestored){
+    showToast('✓ Порядок маршрута восстановлен');
+    document.getElementById('clearOrderBtn').style.display = '';
+  } else {
+    document.getElementById('clearOrderBtn').style.display = 'none';
+  }
 }
 
-// RENDER
+function parseCodes(str){
+  return String(str).split(/[\n,]/).map(function(s){ return s.trim(); }).filter(Boolean);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
 function renderResults(){
   var name = currentCourierName;
   var initials = name.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('');
@@ -479,7 +604,7 @@ function renderResults(){
   currentItems.forEach(function(item, idx){
     var doneCount  = item.collected.size;
     var totalCount = item.cells.length;
-    var pct        = totalCount ? Math.round(doneCount / totalCount * 100) : 0;
+    var pct        = totalCount ? Math.round(doneCount/totalCount*100) : 0;
     var allDone    = totalCount > 0 && doneCount === totalCount;
 
     var el = document.createElement('div');
@@ -487,7 +612,7 @@ function renderResults(){
     el.dataset.idx = idx;
     el.draggable = true;
 
-    // order input
+    // — порядковый номер (слева)
     var orderCol = document.createElement('div');
     orderCol.className = 'order-col';
     var orderInput = document.createElement('input');
@@ -497,18 +622,10 @@ function renderResults(){
     orderInput.max = currentItems.length;
     orderInput.value = idx + 1;
     orderInput.addEventListener('change', function(){ reorderByInput(idx, parseInt(orderInput.value)-1); });
-    orderInput.addEventListener('click', function(){ orderInput.select(); });
+    orderInput.addEventListener('click',  function(){ orderInput.select(); });
     orderCol.appendChild(orderInput);
 
-    // drag handle
-    var handle = document.createElement('div');
-    handle.className = 'drag-handle';
-    handle.textContent = '⠿';
-    handle.addEventListener('touchstart', onTouchStart, { passive: false });
-    handle.addEventListener('touchmove',  onTouchMove,  { passive: false });
-    handle.addEventListener('touchend',   onTouchEnd,   { passive: false });
-
-    // body
+    // — тело карточки
     var body = document.createElement('div');
     body.className = 'item-body';
 
@@ -530,26 +647,33 @@ function renderResults(){
         var tag = document.createElement('span');
         tag.className = 'cell-tag' + (item.collected.has(c) ? ' done' : '');
         tag.textContent = c;
-        tag.addEventListener('click',    function(e){ e.stopPropagation(); toggleCell(idx, c); });
-        tag.addEventListener('touchend', function(e){ e.stopPropagation(); e.preventDefault(); toggleCell(idx, c); });
+        tag.addEventListener('click',    function(e){ e.stopPropagation(); toggleCell(idx,c); });
+        tag.addEventListener('touchend', function(e){ e.stopPropagation(); e.preventDefault(); toggleCell(idx,c); });
         cellsDiv.appendChild(tag);
       });
 
-      var progressDiv = document.createElement('div');
-      progressDiv.className = 'cell-progress';
-      progressDiv.innerHTML =
+      var prog = document.createElement('div');
+      prog.className = 'cell-progress';
+      prog.innerHTML =
         '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div>' +
         '<div class="progress-label'+(allDone?' all-done':'')+'">'+(allDone?'✓ все':doneCount+'/'+totalCount)+'</div>';
 
       body.appendChild(cellsDiv);
-      body.appendChild(progressDiv);
+      body.appendChild(prog);
     }
 
-    el.appendChild(orderCol);
-    el.appendChild(handle);
-    el.appendChild(body);
+    // — drag handle (справа)
+    var handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.textContent = '⠿';
+    handle.addEventListener('touchstart', onTouchStart, { passive: false });
+    handle.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    handle.addEventListener('touchend',   onTouchEnd,   { passive: false });
 
-    // desktop drag
+    el.appendChild(orderCol);
+    el.appendChild(body);
+    el.appendChild(handle); // handle последним = справа
+
     el.addEventListener('dragstart', onDragStart);
     el.addEventListener('dragover',  onDragOver);
     el.addEventListener('drop',      onDrop);
@@ -563,12 +687,12 @@ function renderResults(){
 }
 
 function updateSummary(){
-  var totalCells = 0, doneCells = 0, addrsLeft = 0;
+  var totalCells=0, doneCells=0, addrsLeft=0;
   currentItems.forEach(function(it){
     totalCells += it.cells.length;
     doneCells  += it.collected.size;
-    var itemDone = it.cells.length > 0 && it.cells.every(function(c){ return it.collected.has(c); });
-    if(!itemDone) addrsLeft++;
+    var done = it.cells.length>0 && it.cells.every(function(c){ return it.collected.has(c); });
+    if(!done) addrsLeft++;
   });
   var remaining = totalCells - doneCells;
 
@@ -576,10 +700,9 @@ function updateSummary(){
     ? currentItems.length + ' адресов в маршруте'
     : addrsLeft + ' из ' + currentItems.length + ' адресов осталось';
 
-  var s = document.getElementById('summaryStrip');
-  s.innerHTML =
-    '<div class="sum-item"><div class="sum-val" style="color:'+(addrsLeft===0?'var(--success)':'var(--accent)')+'">'+addrsLeft+'</div><div class="sum-label">Адресов осталось</div></div>' +
-    '<div class="sum-item"><div class="sum-val" style="color:'+(remaining===0&&totalCells>0?'var(--success)':'var(--accent2)')+'">'+remaining+'</div><div class="sum-label">МК осталось</div></div>' +
+  document.getElementById('summaryStrip').innerHTML =
+    '<div class="sum-item"><div class="sum-val" style="color:'+(addrsLeft===0?'var(--success)':'var(--accent)')+'">'+addrsLeft+'</div><div class="sum-label">Адресов осталось</div></div>'+
+    '<div class="sum-item"><div class="sum-val" style="color:'+(remaining===0&&totalCells>0?'var(--success)':'var(--accent2)')+'">'+remaining+'</div><div class="sum-label">МК осталось</div></div>'+
     '<div class="sum-item"><div class="sum-val" style="color:var(--muted)">'+doneCells+'</div><div class="sum-label">МК собрано</div></div>';
 }
 
@@ -587,6 +710,7 @@ function toggleCell(itemIdx, cellCode){
   var item = currentItems[itemIdx];
   if(item.collected.has(cellCode)) item.collected.delete(cellCode);
   else item.collected.add(cellCode);
+  saveRouteState();
   renderResults();
 }
 
@@ -598,14 +722,15 @@ function resetResults(){
 }
 
 function reorderByInput(fromIdx, toIdx){
-  toIdx = Math.max(0, Math.min(currentItems.length - 1, toIdx));
+  toIdx = Math.max(0, Math.min(currentItems.length-1, toIdx));
   if(toIdx === fromIdx) return;
-  var moved = currentItems.splice(fromIdx, 1)[0];
-  currentItems.splice(toIdx, 0, moved);
+  var moved = currentItems.splice(fromIdx,1)[0];
+  currentItems.splice(toIdx,0,moved);
+  saveRouteState();
   renderResults();
 }
 
-// DESKTOP DRAG
+// ─── DESKTOP DRAG ─────────────────────────────────────────────────────────────
 function onDragStart(e){
   dragSrc = this;
   this.classList.add('dragging');
@@ -623,8 +748,9 @@ function onDrop(e){
   if(dragSrc && dragSrc !== this){
     var from = parseInt(dragSrc.dataset.idx);
     var to   = parseInt(this.dataset.idx);
-    var moved = currentItems.splice(from, 1)[0];
-    currentItems.splice(to, 0, moved);
+    var moved = currentItems.splice(from,1)[0];
+    currentItems.splice(to,0,moved);
+    saveRouteState();
     renderResults();
   }
 }
@@ -633,7 +759,7 @@ function onDragEnd(){
   dragSrc = null;
 }
 
-// TOUCH DRAG
+// ─── TOUCH DRAG ───────────────────────────────────────────────────────────────
 function onTouchStart(e){
   e.preventDefault();
   var item = this.closest('.route-item');
@@ -641,17 +767,11 @@ function onTouchStart(e){
   var rect = item.getBoundingClientRect();
   touchClone = item.cloneNode(true);
   var st = touchClone.style;
-  st.position = 'fixed';
-  st.zIndex = '9999';
-  st.pointerEvents = 'none';
-  st.opacity = '0.85';
-  st.left = rect.left + 'px';
-  st.top  = rect.top  + 'px';
-  st.width = rect.width + 'px';
-  st.boxShadow = '0 8px 32px rgba(0,0,0,.6)';
-  st.borderColor = 'var(--accent)';
-  st.transition = 'none';
-  st.margin = '0';
+  st.position='fixed'; st.zIndex='9999'; st.pointerEvents='none';
+  st.opacity='0.88'; st.left=rect.left+'px'; st.top=rect.top+'px';
+  st.width=rect.width+'px'; st.margin='0'; st.transition='none';
+  st.boxShadow='0 8px 32px rgba(0,0,0,.6)';
+  st.borderColor='var(--accent)';
   document.body.appendChild(touchClone);
   item.classList.add('dragging');
 }
@@ -660,13 +780,10 @@ function onTouchMove(e){
   if(!touchClone) return;
   var t = e.touches[0];
   var h = touchClone.offsetHeight;
-  touchClone.style.top  = (t.clientY - h/2) + 'px';
-  touchClone.style.left = touchClone.style.left; // keep x fixed
-
+  touchClone.style.top = (t.clientY - h/2) + 'px';
   touchClone.style.display = 'none';
   var el = document.elementFromPoint(t.clientX, t.clientY);
   touchClone.style.display = '';
-
   document.querySelectorAll('.route-item').forEach(function(r){ r.classList.remove('drag-over'); });
   var target = el && el.closest('.route-item');
   if(target && parseInt(target.dataset.idx) !== touchDragIdx) target.classList.add('drag-over');
@@ -682,21 +799,97 @@ function onTouchEnd(e){
   if(target){
     var toIdx = parseInt(target.dataset.idx);
     if(toIdx !== touchDragIdx){
-      var moved = currentItems.splice(touchDragIdx, 1)[0];
-      currentItems.splice(toIdx, 0, moved);
+      var moved = currentItems.splice(touchDragIdx,1)[0];
+      currentItems.splice(toIdx,0,moved);
+      saveRouteState();
       renderResults();
     }
   }
   touchDragIdx = null;
 }
 
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+// ─── LOCALSTORAGE ─────────────────────────────────────────────────────────────
+// Ключ = отсортированный список кодов адресов курьера, joined через '|'
+// Значение = { order: [code, code, ...], collected: { code: [cell, cell] } }
+
+function routeStorageKey(items){
+  return 'route__' + items.map(function(it){ return it.code; }).slice().sort().join('|');
+}
+
+function saveRouteState(){
+  if(!currentItems.length) return;
+  try{
+    var key = routeStorageKey(currentItems);
+    var val = {
+      order: currentItems.map(function(it){ return it.code; }),
+      collected: {}
+    };
+    currentItems.forEach(function(it){
+      if(it.collected.size > 0){
+        val.collected[it.code] = Array.from(it.collected);
+      }
+    });
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch(e){ /* localStorage недоступен — молча игнорируем */ }
+}
+
+function applyStoredState(items){
+  // Пробуем найти сохранённый порядок для этого набора адресов
+  try{
+    var key = routeStorageKey(items);
+    var raw = localStorage.getItem(key);
+    if(!raw) return items; // ничего не сохранено — возвращаем как есть
+
+    var saved = JSON.parse(raw);
+    if(!saved || !Array.isArray(saved.order)) return items;
+
+    // Проверяем что сохранённый порядок содержит ровно те же коды
+    var savedSet  = saved.order.slice().sort().join('|');
+    var actualSet = items.map(function(it){ return it.code; }).slice().sort().join('|');
+    if(savedSet !== actualSet) return items; // маршрут изменился — не применяем
+
+    // Перестраиваем items в сохранённом порядке
+    var byCode = {};
+    items.forEach(function(it){ byCode[it.code] = it; });
+
+    var reordered = saved.order.map(function(code){ return byCode[code]; }).filter(Boolean);
+
+    // Восстанавливаем отмеченные МК
+    if(saved.collected){
+      reordered.forEach(function(it){
+        var cells = saved.collected[it.code];
+        if(cells && Array.isArray(cells)){
+          it.collected = new Set(cells);
+        }
+      });
+    }
+
+    return reordered;
+  } catch(e){ return items; }
+}
+
+function clearStoredRoute(){
+  if(!currentItems.length) return;
+  try{
+    var key = routeStorageKey(currentItems);
+    localStorage.removeItem(key);
+  } catch(e){}
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
 function showStatus(type, msg){
   var bar = document.getElementById('statusBar');
   bar.className = 'status-bar' + (type ? ' '+type : '');
   bar.textContent = msg;
   bar.style.display = msg ? 'block' : 'none';
 }
-
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
